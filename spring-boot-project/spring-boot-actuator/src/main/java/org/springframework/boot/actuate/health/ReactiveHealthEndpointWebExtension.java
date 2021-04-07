@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -43,6 +45,8 @@ import org.springframework.boot.actuate.endpoint.web.annotation.EndpointWebExten
 @EndpointWebExtension(endpoint = HealthEndpoint.class)
 public class ReactiveHealthEndpointWebExtension
 		extends HealthEndpointSupport<ReactiveHealthContributor, Mono<? extends HealthComponent>> {
+
+	private static final Log logger = LogFactory.getLog(ReactiveHealthEndpointWebExtension.class);
 
 	private static final String[] NO_PATH = {};
 
@@ -77,6 +81,10 @@ public class ReactiveHealthEndpointWebExtension
 		}
 		HealthEndpointGroup group = result.getGroup();
 		return result.getHealth().map((health) -> {
+			if (!Status.UP.equals(health.getStatus())) {
+				logger.debug("health status=" + health.getStatus().getCode() + " with description="
+						+ health.getStatus().getDescription());
+			}
 			int statusCode = group.getHttpCodeStatusMapper().getStatusCode(health.getStatus());
 			return new WebEndpointResponse<>(health, statusCode);
 		});
